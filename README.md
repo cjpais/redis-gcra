@@ -16,6 +16,10 @@ This module is an implementation of [GCRA](https://en.wikipedia.org/wiki/Generic
 * [Inspiration](#inspiration)
 * [License](#license)
 
+## TODO
+
+MOVE THIS TO TYPESCRIPT
+
 ## Installation
 
 ```bash
