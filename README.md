@@ -1,6 +1,6 @@
 # Node Redis GCRA Library with Monthly Limit
 
-[![Build Status](https://api.travis-ci.com/cjpais/redis-gcra.svg?branch=master)](https://travis-ci.com/cjpais/redis-gcra) [![npm version](https://badge.fury.io/js/@cjpais/redis-gcra.svg)](https://badge.fury.io/js/@cjpais/redis-gcra)
+[![NPM version](https://img.shields.io/npm/v/@cjpais/redis-gcra.svg)](https://www.npmjs.com/package/@cjpais/redis-gcra)
 
 This is a fork of [redis-gcra](https://www.npmjs.com/package/redis-gcra). This fork
 adds support for a Monthly limit in addition to the GCRA limit. It is built into

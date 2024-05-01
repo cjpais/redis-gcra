@@ -1,6 +1,6 @@
 {
   "name": "@cjpais/redis-gcra",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Rate limiting based on Generic Cell Rate Algorithm. Modified to include monthly limit support",
   "main": "lib/index.js",
   "types": "index.d.ts",
