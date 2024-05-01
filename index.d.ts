@@ -36,7 +36,7 @@ declare function RedisGCRA(options: RedisGCRAOptions): {
     /**
      * The maximum number of tokens that can be consumed in a month. If not provided, defaults to -1. -1 implies infinity. If provided, must be a number greater than or equal to 1. Using 0 will mean all requests will be denied.
      */
-    monthlyLimit: number;
+    monthlyLimit?: number;
   }) => Promise<{
     /**
      * Represents whether the given limit request was fulfilled.
