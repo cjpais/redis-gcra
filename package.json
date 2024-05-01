@@ -1,11 +1,11 @@
 {
-  "name": "redis-gcra",
-  "version": "0.5.1",
-  "description": "Rate limiting based on Generic Cell Rate Algorithm",
+  "name": "@cjpais/redis-gcra",
+  "version": "0.1.0",
+  "description": "Rate limiting based on Generic Cell Rate Algorithm. Modified to include monthly limit support",
   "main": "lib/index.js",
   "types": "index.d.ts",
-  "homepage": "https://github.com/Losant/redis-gcra#readme",
-  "author": "Losant <hello@losant.com>",
+  "homepage": "https://github.com/cjpais/redis-gcra#readme",
+  "author": "CJ Pais <cj@cjpais.com>",
   "license": "MIT",
   "keywords": [
     "GCRA",
@@ -14,7 +14,7 @@
     "throttle"
   ],
   "bugs": {
-    "url": "https://github.com/Losant/redis-gcra/issues"
+    "url": "https://github.com/cjpais/redis-gcra/issues"
   },
   "directories": {
     "test": "./test",
@@ -36,7 +36,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Losant/redis-gcra.git"
+    "url": "git+https://github.com/cjpais/redis-gcra.git"
   },
   "lint-staged": {
     "*.js": "esw"
@@ -44,11 +44,13 @@
   "devDependencies": {
     "@losant/eslint-config-losant": "^1.6.1",
     "husky": "^8.0.3",
+    "ioredis": ">=4.0.0 <6.0.0",
     "lint-staged": "^15.0.2",
     "mocha": "^10.2.0",
+    "redis": ">=4.1.0 <5.0.0",
+    "rewire": "^7.0.0",
     "should": "^13.2.3",
-    "ioredis": ">=4.0.0 <6.0.0",
-    "redis": ">=4.1.0 <5.0.0"
+    "sinon": "^17.0.1"
   },
   "eslintConfig": {
     "extends": "@losant/eslint-config-losant/env/node"

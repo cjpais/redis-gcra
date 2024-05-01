@@ -1,6 +1,12 @@
-# Node Redis GCRA Library
+# Node Redis GCRA Library with Monthly Limit
 
-[![Build Status](https://api.travis-ci.com/Losant/redis-gcra.svg?branch=master)](https://travis-ci.com/Losant/redis-gcra) [![npm version](https://badge.fury.io/js/redis-gcra.svg)](https://badge.fury.io/js/redis-gcra)
+[![Build Status](https://api.travis-ci.com/cjpais/redis-gcra.svg?branch=master)](https://travis-ci.com/cjpais/redis-gcra) [![npm version](https://badge.fury.io/js/@cjpais/redis-gcra.svg)](https://badge.fury.io/js/@cjpais/redis-gcra)
+
+This is a fork of [redis-gcra](https://www.npmjs.com/package/redis-gcra). This fork
+adds support for a Monthly limit in addition to the GCRA limit. It is built into
+the same lua script for performance/latency reasons.
+
+# Original README below (with slight modifications)
 
 This module is an implementation of [GCRA](https://en.wikipedia.org/wiki/Generic_cell_rate_algorithm) for rate limiting based on [Redis](https://redis.io/).
 
@@ -16,9 +22,6 @@ This module is an implementation of [GCRA](https://en.wikipedia.org/wiki/Generic
 * [Inspiration](#inspiration)
 * [License](#license)
 
-## TODO
-
-MOVE THIS TO TYPESCRIPT
 
 ## Installation
 
@@ -34,7 +37,7 @@ yarn install redis-gcra
 
 ## API Documentation
 
-### RedisGCRA({ redis, keyPrefix, burst, rate, period, cost })
+### RedisGCRA({ redis, keyPrefix, burst, rate, period, cost, monthlyLimit })
 
 ```javascript
 const RedisGCRA = require('redis-gcra');
@@ -45,7 +48,8 @@ const limiter = RedisGCRA({
   burst: 60,
   rate: 1,
   period: 1000,
-  cost: 1
+  cost: 1,
+  monthlyLimit: 1000
 });
 ```
 
@@ -60,6 +64,7 @@ It takes the following options:
 | rate | Number | 1 | The default rate value for this limiter instance. If provided, must be a number greater than or equal to 1. |
 | period | Number | 1000 | The default period value for this limiter instance (milliseconds). If provided, must be a number greater than or equal to 1. |
 | cost | Number | 1 | The default cost value for for this limiter instance. If provided, must be a number greater than or equal to 0. |
+| monthlyLimit | Number | -1 | The maximum number of requests in a month for this key. -1 means unlimited. |
 
 ### Instance Functions
 
@@ -71,7 +76,8 @@ limiter.limit({
   burst: 1000,
   rate: 1,
   period: 1000,
-  cost: 2
+  cost: 2,
+  monthlyLimit: 1000
 });
 ```
 

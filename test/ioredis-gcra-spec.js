@@ -1,5 +1,6 @@
 const Redis     = require('ioredis');
 const RedisGCRA = require('../lib');
+const sinon     = require('sinon');
 
 describe('ioRedis-RedisGCRA', () => {
   before(() => {
@@ -328,6 +329,123 @@ describe('ioRedis-RedisGCRA', () => {
       result.remaining.should.equal(59);
       result.resetIn.should.be.within(980, 1000);
     });
+  });
+
+  it('monthly limit unlimited (-1) works as expected', async () => {
+    const prefixed = RedisGCRA({ redis: this.redis, keyPrefix: 'test', cost: 1 });
+
+    const opts = {
+      key: 'user1', burst: 4, rate: 1, period: 500, cost: 1, monthlyLimit: -1
+    };
+
+    let result = await prefixed.limit(opts);
+    result.limited.should.equal(false);
+    result.remaining.should.equal(3);
+    result.retryIn.should.equal(0);
+    result.resetIn.should.be.within(490, 500);
+    result.monthlyRemaining.should.equal('unlimited');
+
+    result = await prefixed.limit(opts);
+    result.limited.should.equal(false);
+    result.remaining.should.equal(2);
+    result.retryIn.should.equal(0);
+    result.resetIn.should.be.within(990, 1000);
+    result.monthlyRemaining.should.equal('unlimited');
+
+    // check that the number of requests is properly set for the key
+    const key = `test/user1:monthly_count:${RedisGCRA.getStartOfMonth()}`;
+    const reqCount = await this.redis.get(key);
+    reqCount.should.equal('2');
+  });
+
+  it('monthly limit limited (2500) works as expected', async () => {
+    const prefixed = RedisGCRA({ redis: this.redis, keyPrefix: 'test', cost: 1 });
+
+    const opts = {
+      key: 'user1', burst: 4, rate: 1, period: 500, cost: 1, monthlyLimit: 2500
+    };
+
+    let result = await prefixed.limit(opts);
+    result.limited.should.equal(false);
+    result.remaining.should.equal(3);
+    result.retryIn.should.equal(0);
+    result.resetIn.should.be.within(490, 500);
+    result.monthlyRemaining.should.equal(2499);
+
+    result = await prefixed.limit(opts);
+    result.limited.should.equal(false);
+    result.remaining.should.equal(2);
+    result.retryIn.should.equal(0);
+    result.resetIn.should.be.within(990, 1000);
+    result.monthlyRemaining.should.equal(2498);
+
+    const key = `test/user1:monthly_count:${RedisGCRA.getStartOfMonth()}`;
+    let reqCount = await this.redis.get(key);
+    reqCount.should.equal('2');
+
+    // test that we limit after n requests
+    const opts2 = {
+      key: 'user2', burst: 100, rate: 100, period: 500, cost: 1, monthlyLimit: 5
+    };
+
+    // foreach loop for 5 times
+    [...Array(5).keys()].map(async (i) => {
+      result = await prefixed.limit(opts2);
+      result.limited.should.equal(false);
+      result.monthlyRemaining.should.equal(4-i);
+    });
+
+    result = await prefixed.limit(opts2);
+    result.limited.should.equal(true);
+    result.monthlyRemaining.should.equal(0);
+
+    // check that the number of requests is properly set for the key
+    const key2 = `test/user2:monthly_count:${RedisGCRA.getStartOfMonth()}`;
+    reqCount = await this.redis.get(key2);
+    reqCount.should.equal('5');
+  });
+
+  it('monthly limit is reset after a month has passed', async () => {
+    const clock = sinon.useFakeTimers(Date.now());
+    const prefixed = RedisGCRA({ redis: this.redis, keyPrefix: 'test', cost: 1 });
+
+    const opts = {
+      key: 'user1', burst: 4, rate: 1, period: 500, cost: 1, monthlyLimit: 2500
+    };
+
+    let result = await prefixed.limit(opts);
+    result.limited.should.equal(false);
+    result.remaining.should.equal(3);
+    result.retryIn.should.equal(0);
+    result.resetIn.should.be.within(490, 500);
+    result.monthlyRemaining.should.equal(2499);
+
+    result = await prefixed.limit(opts);
+    result.limited.should.equal(false);
+    result.remaining.should.equal(2);
+    result.retryIn.should.equal(0);
+    result.resetIn.should.be.within(990, 1000);
+    result.monthlyRemaining.should.equal(2498);
+
+    let key = `test/user1:monthly_count:${RedisGCRA.getStartOfMonth()}`;
+    let reqCount = await this.redis.get(key);
+    reqCount.should.equal('2');
+
+    // have a month pass
+    clock.tick(1000 * 60 * 60 * 24 * 32);
+
+    result = await prefixed.limit(opts);
+    result.limited.should.equal(false);
+    result.remaining.should.equal(3);
+    result.retryIn.should.equal(0);
+    result.resetIn.should.be.within(490, 500);
+    result.monthlyRemaining.should.equal(2499);
+
+    key = `test/user1:monthly_count:${RedisGCRA.getStartOfMonth()}`;
+    reqCount = await this.redis.get(key);
+    reqCount.should.equal('1');
+
+    clock.restore();
   });
 
 });

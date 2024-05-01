@@ -4,10 +4,22 @@ local burst          = ARGV[2]
 local rate           = ARGV[3]
 local period         = ARGV[4]
 local cost           = ARGV[5]
+local monthly_limit  = ARGV[6]
+local start_of_month = ARGV[7]
 
+-- tat
 local emission_interval = period / rate
 local increment         = emission_interval * cost
 local burst_offset      = emission_interval * burst
+
+-- monthly limit
+local monthly_count_key = rate_limit_key .. ":monthly_count:" .. start_of_month
+local monthly_count = tonumber(redis.call("GET", monthly_count_key) or 0)
+
+if monthly_count == 0 then
+  -- set the key to expire 33 days after the start of the month
+  redis.call("SET", monthly_count_key, 0, "EXAT", start_of_month + (60 * 60 * 24 * 33))
+end
 
 local tat = redis.call("GET", rate_limit_key)
 
@@ -28,7 +40,7 @@ local reset_in
 
 local remaining = math.floor(diff / emission_interval) -- poor man's round
 
-if remaining < 0 then
+if remaining < 0 or (tonumber(monthly_limit) ~= -1 and monthly_count >= tonumber(monthly_limit)) then
   limited = 1
   -- calculate how many tokens there actually are, since
   -- remaining is how many there would have been if we had been able to limit
@@ -50,6 +62,14 @@ else
   if increment > 0 then
     redis.call("SET", rate_limit_key, new_tat, "PX", reset_in)
   end
+
+  redis.call("INCRBY", monthly_count_key, cost)
+  monthly_count = monthly_count + cost
 end
 
-return {limited, remaining, retry_in, reset_in, tostring(diff), tostring(emission_interval)}
+local monthly_remaining = "unlimited"
+if monthly_limit ~= "-1" then
+  monthly_remaining = monthly_limit - monthly_count
+end
+
+return {limited, remaining, retry_in, reset_in, tostring(diff), tostring(emission_interval), monthly_remaining}
